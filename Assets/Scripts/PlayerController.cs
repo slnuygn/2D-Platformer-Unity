@@ -63,6 +63,7 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         isGroundedBool = IsGrounded();
+        Debug.Log(isGroundedBool);
 
         if (isGroundedBool)
         {
@@ -86,6 +87,7 @@ public class PlayerController : MonoBehaviour
                 Jump(doubleJumpForce);
                 canDoubleJump = false; // Disable double jump until grounded again
             }
+           
         }
 
         if (!isPaused)
@@ -177,11 +179,26 @@ public class PlayerController : MonoBehaviour
 
     private bool IsGrounded()
     {
-        float rayLength = 0.25f;
+        float rayLength = 0.5f;
         Vector2 rayOrigin = new Vector2(groundCheck.transform.position.x, groundCheck.transform.position.y - 0.1f);
-        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.down, rayLength, groundLayer);
-        return hit.collider != null;
+
+        // Get the LayerMask for ground and exclude the player's layer
+        int layerMask = ~LayerMask.GetMask("player", "CameraBounds"); // Exclude the "Player" layer from the raycast
+
+        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.down, rayLength, layerMask);
+
+        Debug.DrawRay(rayOrigin, Vector2.down * rayLength, Color.red); // Visualize the ray
+        Debug.Log("Ray hit: " + (hit.collider != null ? hit.collider.name : "Nothing"));
+        if (hit.collider != null && (hit.collider.gameObject.layer == LayerMask.NameToLayer("ground") || hit.collider.gameObject.layer == LayerMask.NameToLayer("movable")))
+        {
+            // The ray hit the ground
+            return true;
+        }
+
+        // Ray didn't hit the ground
+        return false;
     }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if(collision.gameObject.tag == "killzone")
@@ -189,27 +206,7 @@ public class PlayerController : MonoBehaviour
             GameManager.instance.Death();
         }
     }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
 
 
 
